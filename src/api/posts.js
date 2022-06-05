@@ -86,7 +86,6 @@ router.get('/', async (req, res, next) => {
     const getPostIds = await UserPost.findAll({
       attributes: ['postId'],
       where: {
-        // the promt says to return at least one of the authors in the query param but I didn't know if
         userId: {
           [Op.in]: authArr,
         },
