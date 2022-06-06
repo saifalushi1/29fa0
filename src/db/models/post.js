@@ -55,4 +55,18 @@ Post.getPostsByUserId = async function (userId) {
   });
 };
 
+Post.getPostById = async (postId) => {
+  return Post.findOne({
+    include: [
+      {
+        model: UserPost,
+        attributes: [],
+        where: {
+          postId: [postId],
+        },
+      },
+    ],
+  });
+};
+
 module.exports = Post;
