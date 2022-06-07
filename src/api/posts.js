@@ -58,10 +58,8 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Must Provide authorId(s)' });
     }
 
-    if(sortBy.match("/[0-9]/g") || direction.match("/[0-9]/g")){
-      res
-      .status(404)
-      .json({ error: "Must use the accepted field values"})
+    if (sortBy.match('/[0-9]/g') || direction.match('/[0-9]/g')) {
+      res.status(404).json({ error: 'Must use the accepted field values' });
     }
 
     /* For edge cases I would implement some conditionals Ex:
@@ -91,13 +89,13 @@ router.get('/', async (req, res, next) => {
         },
       },
       order: [[sortBy, direction]],
-    })
+    });
     console.log(JSON.stringify(posts, null, 2));
 
-    posts.forEach(item =>{ 
-      let x = item.dataValues.tags.split(",")
-      item.dataValues.tags = x
-    })
+    posts.forEach((item) => {
+      let x = item.dataValues.tags.split(',');
+      item.dataValues.tags = x;
+    });
 
     res.json({ posts: posts });
   } catch (err) {
@@ -111,29 +109,22 @@ router.patch('/:postId', async (req, res, next) => {
     if (!req.user) return res.sendStatus(401);
 
     const { authorIds, text, tags } = req.body;
-    
-    //Error handling 
-    if(authorIds && !Array.isArray(authorIds)){
-      res
-      .status(404)
-      .json({ error: "AuthorIds must be of type Number[]"})
+
+    //Error handling
+    if (authorIds && !Array.isArray(authorIds)) {
+      res.status(404).json({ error: 'AuthorIds must be of type Number[]' });
     }
 
-    if(text && typeof text !== "string"){
-      res
-      .status(404)
-      .json({ error: "text must be of type string"})
+    if (text && typeof text !== 'string') {
+      res.status(404).json({ error: 'text must be of type string' });
     }
 
-    if(tags && !Array.isArray(tags)){
-      res
-      .status(404)
-      .json({ error: "tags must be of type string[]"})
+    if (tags && !Array.isArray(tags)) {
+      res.status(404).json({ error: 'tags must be of type string[]' });
     }
-
 
     // get the post to update
-    const post = await Post.getPostById(req.params.postId)
+    const post = await Post.getPostById(req.params.postId);
 
     // make changes if there is a field
     if (authorIds) post.authorIds = authorIds;
@@ -142,18 +133,20 @@ router.patch('/:postId', async (req, res, next) => {
 
     await post.save();
 
-    const joinedTags = post.dataValues.tags.split(",")
-    post.dataValues.tags = joinedTags
+    const joinedTags = post.dataValues.tags.split(',');
+    post.dataValues.tags = joinedTags;
 
-    res.json({ post: {
-      id: post.id,
-      authorIds: post.authorIds,
-      likes: post.likes,
-      popularity: post.popularity,
-      reads: post.reads,
-      tags: post.tags,
-      text: post.text,
-    }});
+    res.json({
+      post: {
+        id: post.id,
+        authorIds: post.authorIds,
+        likes: post.likes,
+        popularity: post.popularity,
+        reads: post.reads,
+        tags: post.tags,
+        text: post.text,
+      },
+    });
   } catch (err) {
     next(err);
   }
