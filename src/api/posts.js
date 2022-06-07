@@ -58,35 +58,21 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Must Provide authorId(s)' });
     }
 
+    if(sortBy.match("/[0-9]/g") || direction.match("/[0-9]/g")){
+      res
+      .status(404)
+      .json({ error: "Must use the accepted field values"})
+    }
+
     /* For edge cases I would implement some conditionals Ex:
      (use regex to check if authorIds contains anything other than a number)
      (if the field they entered does not match a list in the model yell at the user and tell them to enter it right)
      */
 
-     /*
-     Created a single function that retrevies the user requested data but I  haven't used sequilize before
-     and could't figure out how to remove the Post key and didn't want to spend to much time smashing my head into my keyboard
-    */
-
-    /* const posts = await UserPost.findAll({
-       attributes: [],
-       where: {
-         userId: [authArr]
-       },
-       include: {
-         model: Post,
-         attributes: ["id", "likes", "popularity", "reads", "tags", "text",],
-       },
-       order: [[Post, sortBy, direction]],
-     });
-     console.log(JSON.stringify(posts, null, 2));
-     */
-    
     // Retrieve all posts from users in the query param
     const getPostIds = await UserPost.findAll({
       attributes: ['postId'],
       where: {
-        // the promt says to return at least one of the authors in the query param but I didn't know if
         userId: {
           [Op.in]: authArr,
         },
@@ -105,8 +91,13 @@ router.get('/', async (req, res, next) => {
         },
       },
       order: [[sortBy, direction]],
-    });
+    })
     console.log(JSON.stringify(posts, null, 2));
+
+    posts.forEach(item =>{ 
+      let x = item.dataValues.tags.split(",")
+      item.dataValues.tags = x
+    })
 
     res.json({ posts: posts });
   } catch (err) {
@@ -120,8 +111,29 @@ router.patch('/:postId', async (req, res, next) => {
     if (!req.user) return res.sendStatus(401);
 
     const { authorIds, text, tags } = req.body;
+    
+    //Error handling 
+    if(authorIds && !Array.isArray(authorIds)){
+      res
+      .status(404)
+      .json({ error: "AuthorIds must be of type Number[]"})
+    }
+
+    if(text && typeof text !== "string"){
+      res
+      .status(404)
+      .json({ error: "text must be of type string"})
+    }
+
+    if(tags && !Array.isArray(tags)){
+      res
+      .status(404)
+      .json({ error: "tags must be of type string[]"})
+    }
+
+
     // get the post to update
-    const post = await Post.getPostById(req.params.postId);
+    const post = await Post.getPostById(req.params.postId)
 
     // make changes if there is a field
     if (authorIds) post.authorIds = authorIds;
@@ -130,7 +142,18 @@ router.patch('/:postId', async (req, res, next) => {
 
     await post.save();
 
-    res.json({ Post: post });
+    const joinedTags = post.dataValues.tags.split(",")
+    post.dataValues.tags = joinedTags
+
+    res.json({ post: {
+      id: post.id,
+      authorIds: post.authorIds,
+      likes: post.likes,
+      popularity: post.popularity,
+      reads: post.reads,
+      tags: post.tags,
+      text: post.text,
+    }});
   } catch (err) {
     next(err);
   }
