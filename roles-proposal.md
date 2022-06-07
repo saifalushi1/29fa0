@@ -1,0 +1,5 @@
+1.) First, I tend to encapsulate permissions in database roles rather than attach them to single user principals. The big win here is roles are part of your database, so you can completely script security then tell the deployment types to "add a user and add him to this role" and they aren't fighting SQL permission boogeymen. Furthermore, this keeps things clean enough and generally avoid any issues. 
+
+For more universal access we can have a SUPER ADMIN or any special naming convention. Ex: create an ADMIN role for special, excplicit database cleanup procedures that should be manually run by admins. Or even a separate role for a special, highly secured part of the application that needs more granular DB permissions.
+
+2.)The patch route would need to only allow the admin/owner to PATCH the blog post, if the user tries to access/modify the blog without the correct permissions we can throw a 403 error letting them know they aren't athuroized.
